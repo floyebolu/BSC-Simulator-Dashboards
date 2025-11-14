@@ -45,14 +45,30 @@ df_combined, min_move, max_move = load_data()
 # -----------------------------------------------------------------
 # 3. Widget UI (Replaces ipywidgets)
 # -----------------------------------------------------------------
-st.title('Number of RBC Transfers in Transfers by Transportation Scenario')
+st.title('Number of RBC Units in Transfers with Different Transportation Scenarios')
+
+with st.expander("About this Dashboard"):
+    st.markdown("""
+    This dashboard is designed to help gauge the preferences of logistics staff by visualizing the results of a blood supply chain simulation. The goal is to understand the operational impact of different strategies for transferring Red Blood Cell (RBC) units between Stock Holding Units (SHUs).
+
+    **Context:** The main cost is not the transportation itself, as transfers utilize the existing NHSBT transport schedule. Instead, the key effort is finding and retrieving units for transfer. This dashboard explores various scenarios, each representing a different level of restriction on transferring units. These scenarios are controlled by a parameter, $\lambda_3$, which ranges from 0 to 1.
+
+    *   A $\lambda_3$ value of 0 represents no constraints on transfers.
+    *   A $\lambda_3$ value of 1 represents the most 'restrictive' scenario, where the penalty for transfers is as important as the penalty for mismatching an RBC unit to a patient.
+
+    The heatmaps below visualize the simulation outcomes for each scenario:
+    *   **Left Plot (Distribution of Transfers):** For the days that there are transfers from a SHU, this shows the maximum number of transfers for the first $\\alpha\%$ least busy days.
+    *   **Right Plot (Probability of High-Volume Transfers):** This shows the probability that on a day requiring a transfer, more than $\\beta$ number of RBCs will need to be moved.
+
+    Use the sliders below to explore the data.
+    """)
 
 # Create two columns for the sliders
 col1, col2 = st.columns(2)
 
 with col1:
     percentile = st.slider(
-        'Show transfer values for this percentile of days (%):', 
+        'Show transfer values for this percentile of days (%): $\\alpha$', 
         min_value=0.0, 
         max_value=100.0, 
         value=95.0, 
@@ -61,7 +77,7 @@ with col1:
 
 with col2:
     threshold = st.slider(
-        'Threshold for Number of Units to Transfer Out:', 
+        'Threshold for Number of Units to Transfer Out: $\\beta$', 
         min_value=min_move, 
         max_value=max_move, 
         value=50, 
@@ -79,7 +95,7 @@ plot_col1, plot_col2 = st.columns(2)
 
 # -- Plot 1: Inverse CDF --
 with plot_col1:
-    st.subheader(f'{percentile:.1f}% of transfers in one day are below the value(s) shown')
+    st.subheader(f'$\\alpha={percentile:.1f}\%$ of transfers in one day are below the value(s) shown')
     
     # Calculate pivot
     q = percentile / 100.0
@@ -89,18 +105,21 @@ with plot_col1:
     )
     
     # Create the plot
-    fig1, ax1 = plt.subplots(figsize=(12, 10))
+    fig1, ax1 = plt.subplots(figsize=(14, 14))
     sns.heatmap(
-        pivot_inv, annot=True, fmt=".2f", cmap="viridis", ax=ax1,
+        pivot_inv, annot=True, fmt=".0f", cmap="viridis", ax=ax1,
         cbar_kws={'label': 'Daily RBC Transfers'},
         vmin=min_move,  # Use stable min/max
         vmax=max_move
     )
+    ax1.set_xticklabels(ax1.get_xticklabels(), rotation=45, ha='right')
+    ax1.set_xlabel('SHU Location')
+    ax1.set_ylabel('Transportation Penalty Scenario: $\lambda_3$')
     st.pyplot(fig1) # This is how you show a matplotlib plot
 
 # -- Plot 2: Complementary CDF --
 with plot_col2:
-    st.subheader(f'Probability that a day\'s transfers exceeds {threshold:d} RBC(s)')
+    st.subheader(f'Probability that a day\'s transfers exceeds $\\beta={threshold:d}$ RBC(s)')
     
     # Calculate pivot
     pivot_ccdf = df_combined.pivot_table(
@@ -109,11 +128,14 @@ with plot_col2:
     )
     
     # Create the plot
-    fig2, ax2 = plt.subplots(figsize=(12, 10))
+    fig2, ax2 = plt.subplots(figsize=(14, 14))
     sns.heatmap(
         pivot_ccdf, annot=True, fmt=".0%", cmap="magma", ax=ax2,
         cbar_kws={'label': 'Probability'},
         vmin=0,  # Stable 0-1 range
         vmax=1
     )
+    ax2.set_xticklabels(ax2.get_xticklabels(), rotation=45, ha='right')
+    ax2.set_xlabel('SHU Location')
+    ax2.set_ylabel('Transportation Penalty Scenario: $\lambda_3$')
     st.pyplot(fig2)
