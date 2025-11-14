@@ -57,8 +57,8 @@ with st.expander("About this Dashboard"):
     *   A $\lambda_3$ value of 1 represents the most 'restrictive' scenario, where the penalty for transfers is as important as the penalty for mismatching an RBC unit to a patient.
 
     The heatmaps below visualize the simulation outcomes for each scenario:
-    *   **Left Plot (Distribution of Transfers):** For the days that there are transfers from a SHU, this shows the maximum number of transfers for the first $\\alpha\%$ least busy days.
-    *   **Right Plot (Probability of High-Volume Transfers):** This shows the probability that on a day requiring a transfer, more than $\\beta$ number of RBCs will need to be moved.
+    *   **Left Plot (Distribution of Transfers):** For the days that there are transfers from a SHU, this shows the maximum number of transfers for the first $\\alpha\%$ least busy days. Default is $\\alpha=95\%$, i.e., the value at which $95\%$ of the data falls below this number.
+    *   **Right Plot (Probability of High-Volume Transfers):** This shows the probability that on a day requiring a transfer, more than $\\beta$ number of RBCs will need to be moved. Default is $\\beta=50$ RBCs.
 
     Use the sliders below to explore the data.
     """)
