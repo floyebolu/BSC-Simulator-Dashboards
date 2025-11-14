@@ -17,16 +17,21 @@ st.set_page_config(layout="wide")
 # For this example, we'll use the same synthetic data
 @st.cache_data  # Caches the data for performance
 def load_data():
-    np.random.seed(42)
-    n_rows = 5000
-    scenarios = [f'Scenario_{i}' for i in range(1, 9)]
-    shus = [f'SHU_{i}' for i in range(1, 15)]
-    data = {
-        'daily_moves': np.random.normal(0, 1, n_rows),
-        'scenario': np.random.choice(scenarios, n_rows),
-        'shu': np.random.choice(shus, n_rows)
-    }
-    df = pd.DataFrame(data)
+    try:
+        with np.load('data/transfers_data.npz') as data:
+            df = pd.DataFrame(data['moves_dist_df'], columns=data['columns'])
+    except FileNotFoundError:
+        # Generate synthetic data if file not found
+        np.random.seed(42)
+        n_rows = 5000
+        scenarios = [f'Scenario_{i}' for i in range(1, 9)]
+        shus = [f'SHU_{i}' for i in range(1, 15)]
+        data = {
+            'daily_moves': np.random.normal(0, 1, n_rows),
+            'scenario': np.random.choice(scenarios, n_rows),
+            'shu': np.random.choice(shus, n_rows)
+        }
+        df = pd.DataFrame(data)
     
     # --- The SAME pre-processing logic ---
     df_all = df.copy()
@@ -40,28 +45,28 @@ df_combined, min_move, max_move = load_data()
 # -----------------------------------------------------------------
 # 3. Widget UI (Replaces ipywidgets)
 # -----------------------------------------------------------------
-st.title('Scenario & SHU Risk Analysis')
+st.title('Number of RBC Transfers in Transfers by Transportation Scenario')
 
 # Create two columns for the sliders
 col1, col2 = st.columns(2)
 
 with col1:
     percentile = st.slider(
-        'Inverse CDF % (Percentile):', 
+        'Show transfer values for this percentile of days (%):', 
         min_value=0.0, 
         max_value=100.0, 
         value=95.0, 
-        step=0.5
+        step=0.1
     )
 
 with col2:
     threshold = st.slider(
-        'CCDF Threshold (Daily Moves):', 
+        'Threshold for Number of Units to Transfer Out:', 
         min_value=min_move, 
         max_value=max_move, 
-        value=0.0, 
-        step=(max_move - min_move) / 100,
-        format="%.4f"
+        value=50, 
+        step=1,
+        format="%d"
     )
 
 st.markdown("---") # Adds a horizontal line
@@ -74,7 +79,7 @@ plot_col1, plot_col2 = st.columns(2)
 
 # -- Plot 1: Inverse CDF --
 with plot_col1:
-    st.subheader(f'Inverse CDF: Value at {percentile}% Percentile')
+    st.subheader(f'{percentile:.1f}% of transfers in one day are below the value(s) shown')
     
     # Calculate pivot
     q = percentile / 100.0
@@ -87,7 +92,7 @@ with plot_col1:
     fig1, ax1 = plt.subplots(figsize=(12, 10))
     sns.heatmap(
         pivot_inv, annot=True, fmt=".2f", cmap="viridis", ax=ax1,
-        cbar_kws={'label': 'Daily Moves Value'},
+        cbar_kws={'label': 'Daily RBC Transfers'},
         vmin=min_move,  # Use stable min/max
         vmax=max_move
     )
@@ -95,7 +100,7 @@ with plot_col1:
 
 # -- Plot 2: Complementary CDF --
 with plot_col2:
-    st.subheader(f'CCDF: Probability Moves > {threshold:.4f}')
+    st.subheader(f'Probability that a day\'s transfers exceeds {threshold:d} RBC(s)')
     
     # Calculate pivot
     pivot_ccdf = df_combined.pivot_table(
@@ -106,7 +111,7 @@ with plot_col2:
     # Create the plot
     fig2, ax2 = plt.subplots(figsize=(12, 10))
     sns.heatmap(
-        pivot_ccdf, annot=True, fmt=".1%", cmap="magma", ax=ax2,
+        pivot_ccdf, annot=True, fmt=".0%", cmap="magma", ax=ax2,
         cbar_kws={'label': 'Probability'},
         vmin=0,  # Stable 0-1 range
         vmax=1
