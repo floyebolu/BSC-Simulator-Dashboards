@@ -18,7 +18,7 @@ st.set_page_config(layout="wide")
 @st.cache_data  # Caches the data for performance
 def load_data():
     try:
-        with np.load('data/transfers_data.npz') as data:
+        with np.load('data/transfers_data.npz', allow_pickle=True,) as data:
             df = pd.DataFrame(data['moves_dist_df'], columns=data['columns'])
     except FileNotFoundError:
         # Generate synthetic data if file not found
