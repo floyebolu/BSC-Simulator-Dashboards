@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 # -----------------------------------------------------------------
 # Set the layout to be wide
 st.set_page_config(layout="wide")
+sns.set(font_scale=1.5)
 
 # -----------------------------------------------------------------
 # 2. Data Loading (Same as your notebook)
@@ -49,15 +50,15 @@ st.title('Number of RBC Units in Transfers with Different Transportation Scenari
 
 with st.expander("About this Dashboard"):
     st.markdown("""
-    This dashboard is designed to help gauge the preferences of logistics staff by visualizing the results of a blood supply chain simulation. The goal is to understand the operational impact of different strategies for transferring Red Blood Cell (RBC) units between Stock Holding Units (SHUs).
+    This dashboard is designed to help explore the preferences of logistics staff by visualizing the results of a six-week long blood supply chain simulation. The goal is to understand the operational impact of different strategies for transferring red blood cell (RBC) units between stock holding units (SHUs).
 
-    **Context:** The main cost is not the transportation itself, as transfers utilize the existing NHSBT transport schedule. Instead, the key effort is finding and retrieving units for transfer. This dashboard explores various scenarios, each representing a different level of restriction on transferring units. These scenarios are controlled by a parameter, $\lambda_3$, which ranges from 0 to 1.
+    **Context:** The main cost is not the transportation itself, as transfers utilize the existing NHSBT transport schedule. Instead, the key effort is finding and retrieving units at each SHU for transfer. This dashboard explores various scenarios, each representing a different level of restriction on transferring units. These scenarios are controlled by a parameter, $\lambda_3$, which ranges from 0 to 1.
 
     *   A $\lambda_3$ value of 0 represents no constraints on transfers.
-    *   A $\lambda_3$ value of 1 represents the most 'restrictive' scenario, where the penalty for transfers is as important as the penalty for mismatching an RBC unit to a patient.
+    *   A $\lambda_3$ value of 1 represents the most 'restrictive' scenario, where the penalty for transfers is as important as the penalty for mismatching an RBC unit to a patient (on non-mandatory antigens).
 
     The heatmaps below visualize the simulation outcomes for each scenario:
-    *   **Left Plot (Distribution of Transfers):** For the days that there are transfers from a SHU, this shows the maximum number of transfers for the first $\\alpha\%$ least busy days. Default is $\\alpha=95\%$, i.e., the value at which $95\%$ of the data falls below this number.
+    *   **Left Plot (Distribution of Transfers):** For the days that there are transfers from a SHU, setting $\\alpha=95\%$ means $95\%$ of those days had equal or fewer transfers than the value shown in the plot. Default is $\\alpha=95\%$.
     *   **Right Plot (Probability of High-Volume Transfers):** This shows the probability that on a day requiring a transfer, more than $\\beta$ number of RBCs will need to be moved. Default is $\\beta=50$ RBCs.
 
     Use the sliders below to explore the data.
@@ -105,14 +106,14 @@ with plot_col1:
     )
     
     # Create the plot
-    fig1, ax1 = plt.subplots(figsize=(14, 14))
+    fig1, ax1 = plt.subplots(figsize=(20, 14), dpi=200)
     sns.heatmap(
         pivot_inv, annot=True, fmt=".0f", cmap="viridis", ax=ax1,
         cbar_kws={'label': 'Daily RBC Transfers'},
         vmin=min_move,  # Use stable min/max
         vmax=max_move
     )
-    ax1.set_xticklabels(ax1.get_xticklabels(), rotation=45, ha='right')
+    ax1.set_xticklabels(ax1.get_xticklabels(), rotation=45, ha='right', )
     ax1.set_xlabel('SHU Location')
     ax1.set_ylabel('Transportation Penalty Scenario: $\lambda_3$')
     st.pyplot(fig1) # This is how you show a matplotlib plot
@@ -128,7 +129,7 @@ with plot_col2:
     )
     
     # Create the plot
-    fig2, ax2 = plt.subplots(figsize=(14, 14))
+    fig2, ax2 = plt.subplots(figsize=(20, 14), dpi=200)
     sns.heatmap(
         pivot_ccdf, annot=True, fmt=".0%", cmap="magma", ax=ax2,
         cbar_kws={'label': 'Probability'},
