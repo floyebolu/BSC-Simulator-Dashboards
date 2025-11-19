@@ -12,12 +12,11 @@ st.set_page_config(layout="wide")
 sns.set(font_scale=1.5)
 
 # -----------------------------------------------------------------
-# 2. Data Loading (Same as your notebook)
+# 2. Data Loading (Load the raw data once and cache it)
 # -----------------------------------------------------------------
-# In a real app, you would load your 'df' here
-# For this example, we'll use the same synthetic data
-@st.cache_data  # Caches the data for performance
+@st.cache_data # Caches the raw data for performance
 def load_data():
+    # Attempt to load real data
     try:
         with np.load('data/transfers_data.npz', allow_pickle=True,) as data:
             df = pd.DataFrame(data['moves_dist_df'], columns=data['columns'])
@@ -27,20 +26,24 @@ def load_data():
         n_rows = 5000
         scenarios = [f'Scenario_{i}' for i in range(1, 9)]
         shus = [f'SHU_{i}' for i in range(1, 15)]
+        # Generate data with some zeros to demonstrate the filter
         data = {
-            'daily_moves': np.random.normal(0, 1, n_rows),
+            'daily_moves': np.where(np.random.rand(n_rows) < 0.1, 0, np.random.normal(50, 20, n_rows)).clip(min=0),
             'scenario': np.random.choice(scenarios, n_rows),
             'shu': np.random.choice(shus, n_rows)
         }
         df = pd.DataFrame(data)
     
-    # --- The SAME pre-processing logic ---
-    df_all = df.copy()
-    df_all['shu'] = 'ALL (Total)'
-    df_combined = pd.concat([df, df_all], ignore_index=True)
-    return df_combined, df['daily_moves'].min(), df['daily_moves'].max()
+    # Calculate the global min/max *before* any filtering for stable slider/heatmap bounds
+    min_move = df['daily_moves'].min()
+    max_move = df['daily_moves'].max()
+    
+    # NOTE: The combination logic is removed from here to allow dynamic filtering below.
+    return df, min_move, max_move 
 
-df_combined, min_move, max_move = load_data()
+# Load the raw (uncombined) data and global bounds.
+# df_raw holds the base data, min_move and max_move are used for stable plot ranges.
+df_raw, min_move, max_move = load_data()
 
 
 # -----------------------------------------------------------------
@@ -61,11 +64,20 @@ with st.expander("About this Dashboard"):
     *   **Left Plot (Distribution of Transfers):** For the days that there are transfers from a SHU, setting $\\alpha=95\%$ means $95\%$ of those days had equal or fewer transfers than the value shown in the plot. Default is $\\alpha=95\%$.
     *   **Right Plot (Probability of High-Volume Transfers):** This shows the probability that on a day requiring a transfer, more than $\\beta$ number of RBCs will need to be moved. Default is $\\beta=50$ RBCs.
 
-    Use the sliders below to explore the data.
+    Use the sliders below to explore the data. There is also a checkbox to exclude days with no outgoing RBC transfers from the analysis, which may be useful for focusing on active transfer days.
     """)
 
-# Create two columns for the sliders
-col1, col2 = st.columns(2)
+# Create two columns for the filter and main sliders
+col0, col1, col2 = st.columns([1, 2, 2])
+
+# START of your requested feature: Checkbox
+with col0:
+    exclude_zero_moves = st.checkbox(
+        'Exclude Days without Transfers', 
+        value=False,
+        help="If checked, only days where there are RBC transfers are included in the analysis."
+    )
+# END of your requested feature
 
 with col1:
     percentile = st.slider(
@@ -89,19 +101,37 @@ with col2:
 st.markdown("---") # Adds a horizontal line
 
 # -----------------------------------------------------------------
-# 4. Plotting Logic (The same as your helper module)
+# 4. Data Filtering and Combination (Happens on every slider/checkbox change)
 # -----------------------------------------------------------------
-# Create two columns for the plots
+# This section now dynamically creates the df_combined used by the plots.
+df_filtered = df_raw.copy()
+
+if exclude_zero_moves:
+    # Apply filter: only keep rows where daily_moves is greater than 0
+    df_filtered = df_filtered[df_filtered['daily_moves'] > 0].copy()
+    
+# Re-create the 'ALL' category and the final df_combined (now filtered if necessary)
+df_all = df_filtered.copy()
+df_all['shu'] = 'ALL (Total)'
+df_combined = pd.concat([df_filtered, df_all], ignore_index=True)
+
+# -----------------------------------------------------------------
+# 5. Plotting Logic (The same as your helper module)
+# -----------------------------------------------------------------
 plot_col1, plot_col2 = st.columns(2)
 
 # -- Plot 1: Inverse CDF --
 with plot_col1:
-    st.subheader(f'$\\alpha={percentile:.1f}\%$ of transfers in one day are below the value(s) shown')
+    if exclude_zero_moves:
+        st.subheader(f'$\\alpha={percentile:.1f}\\%$ of transfers in one day are below the value(s) shown')
+    else:
+        st.subheader(f'$\\alpha={percentile:.1f}\\%$ of days have transfers below the value(s) shown')
     
     # Calculate pivot
     q = percentile / 100.0
     pivot_inv = df_combined.pivot_table(
         index='scenario', columns='shu', values='daily_moves', 
+        # For the quantile calculation, we ignore NaNs, which is fine.
         aggfunc=lambda x: np.quantile(x, q)
     )
     
@@ -110,17 +140,22 @@ with plot_col1:
     sns.heatmap(
         pivot_inv, annot=True, fmt=".0f", cmap="viridis", ax=ax1,
         cbar_kws={'label': 'Daily RBC Transfers'},
-        vmin=min_move,  # Use stable min/max
+        vmin=min_move,
         vmax=max_move
     )
     ax1.set_xticklabels(ax1.get_xticklabels(), rotation=45, ha='right', )
     ax1.set_xlabel('SHU Location')
     ax1.set_ylabel('Transportation Penalty Scenario: $\lambda_3$')
-    st.pyplot(fig1) # This is how you show a matplotlib plot
+    st.pyplot(fig1)
 
 # -- Plot 2: Complementary CDF --
 with plot_col2:
-    st.subheader(f'Probability that a day\'s transfers exceeds $\\beta={threshold:d}$ RBC(s)')
+    if exclude_zero_moves:
+        # Note: If excluding zeros, the probability is conditional on having a transfer day.
+        # The title reflects this by stating "a day's transfers" (i.e., days in the current filtered set).
+        st.subheader(f'Probability that a day\'s transfers exceeds $\\beta={threshold:d}$ RBC(s)')
+    else:
+        st.subheader(f'Probability that more than $\\beta={threshold:d}$ RBC(s) are transferred on a given day')
     
     # Calculate pivot
     pivot_ccdf = df_combined.pivot_table(
