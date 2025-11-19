@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 # 1. Setup the Page (This is the only "config" you need)
 # -----------------------------------------------------------------
 # Set the layout to be wide
-st.set_page_config(layout="wide")
+st.set_page_config(page_title="RBC Transfers Dashboard", layout="wide")
 sns.set(font_scale=1.5)
 
 # -----------------------------------------------------------------
