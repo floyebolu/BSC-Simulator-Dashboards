@@ -64,7 +64,7 @@ with st.expander("About this Dashboard"):
     *   A $\lambda_3$ value of 1 represents the most 'restrictive' scenario, where the penalty for transfers is as important as the penalty for mismatching an RBC unit to a patient (on non-mandatory antigens).
 
     The heatmaps below visualize the simulation outcomes for each scenario:
-    *   **Left Plot (Distribution of Transfers):** For the days that there are transfers from a SHU, setting $\\alpha=95\%$ means $95\%$ of those days had equal or fewer transfers than the value shown in the plot. Default is $\\alpha=95\%$.
+    *   **Left Plot (Distribution of Transfers):** For the days that there are transfers from a SHU, setting $\\alpha=95\%$ means $95\%$ of those days had equal or fewer RBCs transferred than the value shown in the plot. Default is $\\alpha=95\%$.
     *   **Right Plot (Probability of High-Volume Transfers):** This shows the probability that on a day requiring a transfer, more than $\\beta$ number of RBCs will need to be moved. Default is $\\beta=50$ RBCs.
 
     Use the sliders below to explore the data. There is also a checkbox to exclude days with no outgoing RBC transfers from the analysis, which may be useful for focusing on active transfer days.
@@ -126,9 +126,9 @@ plot_col1, plot_col2 = st.columns(2)
 # -- Plot 1: Inverse CDF --
 with plot_col1:
     if exclude_zero_moves:
-        st.subheader(f'$\\alpha={percentile:.1f}\\%$ of transfers in one day are below the value(s) shown')
+        st.subheader(f'$\\alpha={percentile:.1f}\\%$ of transfers in one day contain fewer RBCs than the value(s) shown')
     else:
-        st.subheader(f'$\\alpha={percentile:.1f}\\%$ of days have transfers below the value(s) shown')
+        st.subheader(f'$\\alpha={percentile:.1f}\\%$ of days transfer fewer RBCs than the value(s) shown')
     
     # Calculate pivot
     q = percentile / 100.0
