@@ -38,6 +38,9 @@ def load_data():
     min_move = df['daily_moves'].min()
     max_move = df['daily_moves'].max()
     
+    # Remove the 'N/A' scenario if it exists
+    df = df[df['scenario'] != 'N/A'].copy()
+    
     # NOTE: The combination logic is removed from here to allow dynamic filtering below.
     return df, min_move, max_move 
 
@@ -49,7 +52,7 @@ df_raw, min_move, max_move = load_data()
 # -----------------------------------------------------------------
 # 3. Widget UI (Replaces ipywidgets)
 # -----------------------------------------------------------------
-st.title('Number of RBC Units in Transfers with Different Transportation Scenarios')
+st.title('Number of RBC Units in Transfers for Different Transportation Scenarios')
 
 with st.expander("About this Dashboard"):
     st.markdown("""
