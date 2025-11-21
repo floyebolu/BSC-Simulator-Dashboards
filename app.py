@@ -64,7 +64,7 @@ with st.expander("About this Dashboard"):
     *   A $\\lambda_3$ value of 1 represents the most 'restrictive' scenario, where the penalty for transfers is as important as the penalty for mismatching an RBC unit to a patient (on non-mandatory antigens).
 
     The heatmaps below visualize the simulation outcomes for each scenario:
-    *   **Left Plot (Distribution of Transfers):** For the days that there are transfers from a SHU, setting $\\alpha=95\%$ means $95\%$ of those days had equal or fewer RBCs transferred than the value shown in the plot. Default is $\\alpha=95\%$.
+    *   **Left Plot (Distribution of Transfers):** For the days that there are transfers from a SHU, setting $\\alpha=95\\%$ means $95\\%$ of those days had equal or fewer RBCs transferred than the value shown in the plot. Default is $\\alpha=95\\%$.
     *   **Right Plot (Probability of High-Volume Transfers):** This shows the probability that on a day requiring a transfer, more than $\\beta$ number of RBCs will need to be moved. Default is $\\beta=50$ RBCs.
 
     Use the sliders below to explore the data. There is also a checkbox to exclude days with no outgoing RBC transfers from the analysis, which may be useful for focusing on active transfer days.
