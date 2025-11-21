@@ -58,10 +58,10 @@ with st.expander("About this Dashboard"):
     st.markdown("""
     This dashboard is designed to help explore the preferences of logistics staff by visualizing the results of a six-week long blood supply chain simulation. The goal is to understand the operational impact of different strategies for transferring red blood cell (RBC) units between stock holding units (SHUs).
 
-    **Context:** The main cost is not the transportation itself, as transfers utilize the existing NHSBT transport schedule. Instead, the key effort is finding and retrieving units at each SHU for transfer. This dashboard explores various scenarios, each representing a different level of restriction on transferring units. These scenarios are controlled by a parameter, $\lambda_3$, which ranges from 0 to 1.
+    **Context:** The main cost is not the transportation itself, as transfers utilize the existing NHSBT transport schedule. Instead, the key effort is finding and retrieving units at each SHU for transfer. This dashboard explores various scenarios, each representing a different level of restriction on transferring units. These scenarios are controlled by a parameter, $\\lambda_3$, which ranges from 0 to 1.
 
-    *   A $\lambda_3$ value of 0 represents no constraints on transfers.
-    *   A $\lambda_3$ value of 1 represents the most 'restrictive' scenario, where the penalty for transfers is as important as the penalty for mismatching an RBC unit to a patient (on non-mandatory antigens).
+    *   A $\\lambda_3$ value of 0 represents no constraints on transfers.
+    *   A $\\lambda_3$ value of 1 represents the most 'restrictive' scenario, where the penalty for transfers is as important as the penalty for mismatching an RBC unit to a patient (on non-mandatory antigens).
 
     The heatmaps below visualize the simulation outcomes for each scenario:
     *   **Left Plot (Distribution of Transfers):** For the days that there are transfers from a SHU, setting $\\alpha=95\%$ means $95\%$ of those days had equal or fewer RBCs transferred than the value shown in the plot. Default is $\\alpha=95\%$.
@@ -148,7 +148,7 @@ with plot_col1:
     )
     ax1.set_xticklabels(ax1.get_xticklabels(), rotation=45, ha='right', )
     ax1.set_xlabel('SHU Location')
-    ax1.set_ylabel('Transportation Penalty Scenario: $\lambda_3$')
+    ax1.set_ylabel('Transportation Penalty Scenario: $\\lambda_3$')
     st.pyplot(fig1)
 
 # -- Plot 2: Complementary CDF --
@@ -176,5 +176,5 @@ with plot_col2:
     )
     ax2.set_xticklabels(ax2.get_xticklabels(), rotation=45, ha='right')
     ax2.set_xlabel('SHU Location')
-    ax2.set_ylabel('Transportation Penalty Scenario: $\lambda_3$')
+    ax2.set_ylabel('Transportation Penalty Scenario: $\\lambda_3$')
     st.pyplot(fig2)
