@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 # -----------------------------------------------------------------
 # Set the layout to be wide
 st.set_page_config(page_title="RBC Transfers Dashboard", layout="wide")
-sns.set(font_scale=1.5)
+sns.set_theme(font_scale=1.5, font="Nimbus Roman")
 
 # -----------------------------------------------------------------
 # 2. Data Loading (Load the raw data once and cache it)
@@ -139,16 +139,17 @@ with plot_col1:
     )
     
     # Create the plot
-    fig1, ax1 = plt.subplots(figsize=(20, 14), dpi=200)
+    fig1, ax1 = plt.subplots(figsize=(12.5, 10), dpi=200)
     sns.heatmap(
         pivot_inv, annot=True, fmt=".0f", cmap="viridis", ax=ax1,
-        cbar_kws={'label': 'Daily RBC Transfers'},
+        cbar_kws={'label': 'Daily Number of RBCs Transhipped'},
         vmin=min_move,
         vmax=max_move
     )
-    ax1.set_xticklabels(ax1.get_xticklabels(), rotation=45, ha='right', )
-    ax1.set_xlabel('SHU Location')
-    ax1.set_ylabel('Transportation Penalty Scenario: $\\lambda_3$')
+    ax1.set_xticklabels(ax1.get_xticklabels(), rotation=45, ha='right', fontsize=22)
+    ax1.set_yticklabels(ax1.get_yticklabels(), rotation=0, fontsize=22)
+    ax1.set_xlabel('SHU Location', fontsize=24)
+    ax1.set_ylabel('Transportation Penalty Scenario: $\\lambda_3$', fontsize=24)
     st.pyplot(fig1)
 
 # -- Plot 2: Complementary CDF --
@@ -167,14 +168,15 @@ with plot_col2:
     )
     
     # Create the plot
-    fig2, ax2 = plt.subplots(figsize=(20, 14), dpi=200)
+    fig2, ax2 = plt.subplots(figsize=(12.5, 10), dpi=200)
     sns.heatmap(
         pivot_ccdf, annot=True, fmt=".0%", cmap="magma", ax=ax2,
         cbar_kws={'label': 'Probability'},
         vmin=0,  # Stable 0-1 range
         vmax=1
     )
-    ax2.set_xticklabels(ax2.get_xticklabels(), rotation=45, ha='right')
-    ax2.set_xlabel('SHU Location')
-    ax2.set_ylabel('Transportation Penalty Scenario: $\\lambda_3$')
+    ax2.set_xticklabels(ax2.get_xticklabels(), rotation=45, ha='right', fontsize=22)
+    ax2.set_yticklabels(ax2.get_yticklabels(), rotation=0, fontsize=22)
+    ax2.set_xlabel('SHU Location', fontsize=24)
+    ax2.set_ylabel('Transportation Penalty Scenario: $\\lambda_3$', fontsize=24)
     st.pyplot(fig2)
