@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+from io import BytesIO
 
 # -----------------------------------------------------------------
 # 1. Setup the Page (This is the only "config" you need)
@@ -151,6 +152,19 @@ with plot_col1:
     ax1.set_xlabel('SHU Location', fontsize=24)
     ax1.set_ylabel('Transportation Penalty Scenario: $\\lambda_3$', fontsize=24)
     st.pyplot(fig1)
+    
+    # Create a PDF buffer for the first plot
+    pdf_buf1 = BytesIO()
+    fig1.savefig(pdf_buf1, format="pdf", bbox_inches="tight")
+    pdf_buf1.seek(0)
+
+    # Provide a download button for the first plot's PDF
+    st.download_button(
+        label="Download left plot as PDF",
+        data=pdf_buf1,
+        file_name="inverse-cdf-transfers.pdf",
+        mime="application/pdf",
+    )
 
 # -- Plot 2: Complementary CDF --
 with plot_col2:
@@ -180,3 +194,16 @@ with plot_col2:
     ax2.set_xlabel('SHU Location', fontsize=24)
     ax2.set_ylabel('Transportation Penalty Scenario: $\\lambda_3$', fontsize=24)
     st.pyplot(fig2)
+    
+    # Create a PDF buffer for the second plot
+    pdf_buf2 = BytesIO()
+    fig2.savefig(pdf_buf2, format="pdf", bbox_inches="tight")
+    pdf_buf2.seek(0)
+    
+    # Provide a download button for the second plot's PDF
+    st.download_button(
+        label="Download right plot as PDF",
+        data=pdf_buf2,
+        file_name="complementary-cdf-transfers.pdf",
+        mime="application/pdf",
+    )
