@@ -104,6 +104,26 @@ with col2:
 
 st.markdown("---") # Adds a horizontal line
 
+# Custom SHU display order for heatmap columns.
+# Update this list to match your preferred sequence.
+SHU_ORDER = [
+    'ALL',
+    'Colindale',
+    'Manchester',
+    'Filton',
+    'Tooting',
+    'Basildon',
+    'Barnsley',
+    'Birmingham',
+    'Oxford',
+    'Newcastle',
+    'Liverpool',
+    'Southampton',
+    'Cambridge',
+    'Plymouth',
+    'Lancaster'
+]
+
 # -----------------------------------------------------------------
 # 4. Data Filtering and Combination (Happens on every slider/checkbox change)
 # -----------------------------------------------------------------
@@ -116,7 +136,7 @@ if exclude_zero_moves:
     
 # Re-create the 'ALL' category and the final df_combined (now filtered if necessary)
 df_all = df_filtered.copy()
-df_all['shu'] = 'ALL (Total)'
+df_all['shu'] = 'ALL'
 df_combined = pd.concat([df_filtered, df_all], ignore_index=True)
 
 # -----------------------------------------------------------------
@@ -138,6 +158,11 @@ with plot_col1:
         # For the quantile calculation, we ignore NaNs, which is fine.
         aggfunc=lambda x: np.quantile(x, q)
     )
+
+    # Apply custom SHU order, then append any unexpected SHUs at the end.
+    ordered_shus = [shu for shu in SHU_ORDER if shu in pivot_inv.columns]
+    remaining_shus = [shu for shu in pivot_inv.columns if shu not in SHU_ORDER]
+    pivot_inv = pivot_inv.reindex(columns=ordered_shus + remaining_shus)
     
     # Create the plot
     fig1, ax1 = plt.subplots(figsize=(12.5, 10), dpi=200)
@@ -180,6 +205,11 @@ with plot_col2:
         index='scenario', columns='shu', values='daily_moves', 
         aggfunc=lambda x: (x > threshold).mean()
     )
+
+    # Apply the same custom SHU order to the right heatmap.
+    ordered_shus = [shu for shu in SHU_ORDER if shu in pivot_ccdf.columns]
+    remaining_shus = [shu for shu in pivot_ccdf.columns if shu not in SHU_ORDER]
+    pivot_ccdf = pivot_ccdf.reindex(columns=ordered_shus + remaining_shus)
     
     # Create the plot
     fig2, ax2 = plt.subplots(figsize=(12.5, 10), dpi=200)
@@ -187,7 +217,7 @@ with plot_col2:
         pivot_ccdf, annot=True, fmt=".0%", cmap="magma", ax=ax2,
         cbar_kws={'label': 'Probability'},
         vmin=0,  # Stable 0-1 range
-        vmax=1
+        vmax=1.025
     )
     ax2.set_xticklabels(ax2.get_xticklabels(), rotation=45, ha='right', fontsize=22)
     ax2.set_yticklabels(ax2.get_yticklabels(), rotation=0, fontsize=22)
